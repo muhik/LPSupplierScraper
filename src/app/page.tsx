@@ -50,7 +50,7 @@ export default function Home() {
                 {/* Product Images */}
                 <div className="relative w-full max-w-4xl mx-auto flex flex-col gap-8 mb-12 items-center justify-center">
                     <img
-                        src="/CuanPro.jpg"
+                        src="/cuanPro2.jpg"
                         alt="Dashboard CuanPro HPP Calculator"
                         className="w-full h-auto rounded-3xl shadow-2xl border border-neutral-200 object-contain hover:scale-[1.02] transition-transform duration-500 cursor-pointer"
                     />
