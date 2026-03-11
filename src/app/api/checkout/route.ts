@@ -11,8 +11,8 @@ export async function POST(request: Request) {
         const amount = formData.get('amount') as string;
         const parsedAmount = parseInt(amount, 10);
 
-        if (isNaN(parsedAmount) || parsedAmount < 35000) {
-            return NextResponse.json({ error: 'Minimum pembayaran adalah Rp 35.000' }, { status: 400 });
+        if (isNaN(parsedAmount) || parsedAmount < 1000) {
+            return NextResponse.json({ error: 'Minimum pembayaran adalah Rp 1.000' }, { status: 400 });
         }
 
         const db = await getDb();
@@ -54,11 +54,11 @@ export async function POST(request: Request) {
                 amount: parsedAmount,
                 mobile: phone,
                 redirectUrl: `${baseUrl}/success?id=${newId}&email=${encodeURIComponent(email)}`,
-                description: `Akses Bundle 14.000+ Worksheet Anak`,
+                description: `Akses Template CuanPro HPP & Analytics`,
                 items: [
                     {
-                        name: "14.000++ Worksheet Anak",
-                        description: "Pembelian Bundle Digital",
+                        name: "Template CuanPro",
+                        description: "Pembelian Template Excel",
                         quantity: 1,
                         price: parsedAmount,
                         rate: parsedAmount
