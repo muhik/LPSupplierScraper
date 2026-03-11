@@ -12,7 +12,7 @@ declare global {
 
 export default function CheckoutForm() {
     const router = useRouter();
-    const [amount, setAmount] = useState('89000');
+    const [amount, setAmount] = useState('1000'); // Temporarily lowered for testing
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
@@ -77,7 +77,7 @@ export default function CheckoutForm() {
                 <p className="flex items-start gap-2">
                     <span className="text-xl">💡</span>
                     <span>
-                        <strong>Keputusan Tepat!</strong> Hanya dengan investasi <strong>Rp89.000</strong>, Anda sudah mendapatkan akses <strong>Template CuanPro HPP Calculator & Business Analytics</strong> untuk mengelola keuangan bisnis secara lebih profesional.
+                        <strong>Testing Mode!</strong> Harga tes smentara <strong>Rp1.000</strong>.
                     </span>
                 </p>
             </div>
@@ -93,7 +93,7 @@ export default function CheckoutForm() {
                         onChange={(e) => setAmount(e.target.value)}
                         className="w-full pl-12 pr-4 py-3 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-premium-500 focus:border-premium-500 text-lg outline-none transition-shadow font-normal text-neutral-700"
                         required
-                        min="89000"
+                        min="1000"
                     />
                 </div>
             </div>
