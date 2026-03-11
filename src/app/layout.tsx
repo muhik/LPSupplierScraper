@@ -15,8 +15,8 @@ const jakarta = Plus_Jakarta_Sans({
 })
 
 export const metadata: Metadata = {
-    title: 'E-Book Premium - 14.000+ Worksheet Anak',
-    description: 'Dapatkan ribuan worksheet edukatif untuk anak dengan harga spesial.',
+    title: 'CuanPro - HPP Calculator & Business Analytics',
+    description: 'Kalkulator HPP Otomatis, Proyeksi Profit, dan Dashboard Visual untuk keputusan bisnis yang lebih cerdas. Kelola bisnis tanpa ribet!',
 }
 
 export default async function RootLayout({
