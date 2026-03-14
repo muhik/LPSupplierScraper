@@ -67,12 +67,12 @@ export default function TransactionTable({ transactions }: { transactions: Trans
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${tx.status === 'PAID' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
                                                 {tx.status}
                                             </span>
-                                            {/* tx.status === 'PENDING' && (
+                                            {tx.status === 'PENDING' && (
                                                 <button
                                                     onClick={async () => {
                                                         if (confirm('Tandai transaksi ini sebagai LUNAS secara manual?')) {
                                                             try {
-                                                                const res = await fetch(`/api/admin/transactions/${tx.id}/pay`, { method: 'POST' });
+                                                                const res = await fetch(`/api/admin/transactions/\${tx.id}/pay`, { method: 'POST' });
                                                                 if (res.ok) window.location.reload();
                                                                 else alert('Gagal mengubah status');
                                                             } catch (e) {
@@ -84,7 +84,7 @@ export default function TransactionTable({ transactions }: { transactions: Trans
                                                 >
                                                     Tandai Lunas
                                                 </button>
-                                            ) */}
+                                            )}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 font-semibold text-right text-premium-600">
