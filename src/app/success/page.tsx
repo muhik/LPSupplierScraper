@@ -262,7 +262,44 @@ function SuccessContent() {
                         </div>
                     </div>
 
-                    <div className="mt-12 mb-4 bg-gradient-to-r from-emerald-50 to-emerald-100 rounded-3xl p-6 md:p-8 border border-emerald-200 shadow-sm relative overflow-hidden text-center">
+                    {/* Upsell Jasa Install App HP */}
+                    <div className="mt-8 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-6 md:p-8 border border-blue-200 shadow-sm relative overflow-hidden text-center">
+                        <div className="relative z-10 flex flex-col items-center">
+                            <h3 className="text-xl md:text-2xl font-extrabold text-blue-900 mb-3 tracking-tight">
+                                Jadikan Aplikasi Mandiri di HP! 📱
+                            </h3>
+                            <p className="text-blue-800 mb-6 max-w-xl mx-auto text-sm md:text-base leading-relaxed">
+                                Malas buka lewat browser terus? Kami siap membantu menyulap dan menginstal CuanPro agar tampil penuh layaknya Aplikasi Resmi di HP / Tablet Anda.
+                            </p>
+                            
+                            <div className="flex gap-4 justify-center mb-6 w-full max-w-md">
+                                <div className="flex-1 bg-white border border-blue-200 rounded-2xl p-4 shadow-sm hover:border-blue-400 transition-colors">
+                                    <div className="text-3xl mb-2">🤖</div>
+                                    <div className="font-bold text-neutral-800 text-sm">Android</div>
+                                    <div className="text-blue-600 font-extrabold mt-1 text-lg">Rp 50.000</div>
+                                </div>
+                                <div className="flex-1 bg-white border border-blue-200 rounded-2xl p-4 shadow-sm hover:border-blue-400 transition-colors">
+                                    <div className="text-3xl mb-2">🍏</div>
+                                    <div className="font-bold text-neutral-800 text-sm">iPhone / iOS</div>
+                                    <div className="text-blue-600 font-extrabold mt-1 text-lg">Rp 100.000</div>
+                                </div>
+                            </div>
+
+                            <a
+                                href="https://wa.me/6289666639360?text=Halo%20Admin,%20saya%20sudah%20beli%20CuanPro%20dan%20tertarik%20menggunakan%20Jasa%20Install%20CuanPro%20ke%20HP%20saya.%20Saya%20memakai%20*(Sebutkan%20Merk%20HP/Android/iOS)*"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-8 rounded-full transition-all shadow-md hover:shadow-xl hover:-translate-y-1 text-sm md:text-base border border-blue-500"
+                            >
+                                <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824zM12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z" />
+                                </svg>
+                                Pesan Jasa Install HP
+                            </a>
+                        </div>
+                    </div>
+
+                    <div className="mt-6 mb-4 bg-gradient-to-r from-emerald-50 to-emerald-100 rounded-3xl p-6 md:p-8 border border-emerald-200 shadow-sm relative overflow-hidden text-center">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-200 rounded-full mix-blend-multiply filter blur-xl opacity-50 translate-x-8 -translate-y-8"></div>
                         <div className="absolute bottom-0 left-0 w-24 h-24 bg-emerald-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 -translate-x-8 translate-y-8"></div>
 
