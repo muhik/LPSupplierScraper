@@ -1,4 +1,4 @@
-import { createClient, Client } from '@libsql/client/http';
+import { createClient, Client } from '@libsql/client/web';
 
 
 // Connection singleton with globalThis for Next.js HMR
