@@ -1,3 +1,9 @@
+// Polyfill for Next.js Edge Runtime / Cloudflare Pages 
+// Prevents cross-fetch or other browser polyfills from throwing ReferenceError
+if (typeof globalThis !== 'undefined' && !(globalThis as any).XMLHttpRequest) {
+  (globalThis as any).XMLHttpRequest = class XMLHttpRequest {};
+}
+
 import { createClient, Client } from '@libsql/client/web';
 
 
