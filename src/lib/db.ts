@@ -1,33 +1,41 @@
-// Polyfill for Next.js Edge Runtime / Cloudflare Pages 
-// Prevents cross-fetch or other browser polyfills from throwing ReferenceError
+// Polyfill for Cloudflare Pages Edge Runtime
+// Must run BEFORE @libsql/client is loaded, so we use dynamic import
 if (typeof globalThis !== 'undefined' && !(globalThis as any).XMLHttpRequest) {
-  (globalThis as any).XMLHttpRequest = class XMLHttpRequest {};
+  (globalThis as any).XMLHttpRequest = class XMLHttpRequest {
+    open() {}
+    send() {}
+    setRequestHeader() {}
+    addEventListener() {}
+    removeEventListener() {}
+  };
 }
 
-import { createClient, Client } from '@libsql/client/web';
+// Use dynamic import to ensure polyfill runs first
+let _clientModule: typeof import('@libsql/client/web') | null = null;
 
+async function getClientModule() {
+  if (!_clientModule) {
+    _clientModule = await import('@libsql/client/web');
+  }
+  return _clientModule;
+}
 
-// Connection singleton with globalThis for Next.js HMR
-const globalForDb = globalThis as unknown as {
-  libsqlClient: Client | undefined;
-};
+type Client = Awaited<ReturnType<typeof getClientModule>> extends { Client: infer C } ? C : any;
 
-let db = globalForDb.libsqlClient;
+let db: any = null;
 let isInitialized = false;
 
-export async function getDb(): Promise<Client> {
+export async function getDb() {
   if (!db) {
-    // Determine the URL based on environment (local file by default, or Turso URL)
+    const { createClient } = await getClientModule();
+
     const url = process.env.TURSO_DATABASE_URL || 'file:data.db';
     const authToken = process.env.TURSO_AUTH_TOKEN;
 
     db = createClient({
       url,
       authToken,
-      fetch: (val: any, init: any) => fetch(val, init)
     });
-
-    if (process.env.NODE_ENV !== 'production') globalForDb.libsqlClient = db;
   }
 
   // Initialize schema
@@ -64,14 +72,10 @@ export async function getDb(): Promise<Client> {
       });
 
       if (adminPassHash.rows.length === 0) {
-        const defaultPassword = 'admin'; // VERY SIMPLE password, wait for the actual plan
-        // Use Web Crypto API instead of bcryptjs for Edge compatibility
+        const defaultPassword = 'admin';
         const encoder = new TextEncoder();
         const data = encoder.encode(defaultPassword);
-
-        // Edge & Node 18+ standard Web Crypto API
         const subtleCrypto = globalThis.crypto.subtle;
-
         const hashBuffer = await subtleCrypto.digest('SHA-256', data);
         const hashArray = Array.from(new Uint8Array(hashBuffer));
         const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
