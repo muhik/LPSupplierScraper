@@ -11,7 +11,7 @@ export default async function AdminDashboard() {
 
     const result = await db.execute('SELECT * FROM transactions ORDER BY created_at DESC');
 
-    const transactions = result.rows.map(row => ({
+    const transactions = result.rows.map((row: any) => ({
         id: row.id as number,
         name: row.name as string,
         email: row.email as string,
@@ -22,7 +22,7 @@ export default async function AdminDashboard() {
     }));
 
     // Calculate total revenue
-    const totalRevenue = transactions.reduce((sum, tx) => sum + tx.amount, 0);
+    const totalRevenue = transactions.reduce((sum: number, tx: any) => sum + tx.amount, 0);
 
     return (
         <div>
