@@ -25,7 +25,7 @@ interface TursoRow {
 }
 
 // Execute a single SQL statement via Turso HTTP API
-async function tursoExecute(sql: string, args: any[] = []): Promise<{ rows: TursoRow[]; columns: string[] }> {
+async function tursoExecute(sql: string, args: any[] = []): Promise<{ rows: TursoRow[]; columns: string[]; lastInsertRowid?: string }> {
   const url = getHttpUrl();
   const token = TURSO_TOKEN();
 
@@ -58,7 +58,7 @@ async function tursoExecute(sql: string, args: any[] = []): Promise<{ rows: Turs
 
   const resp = result?.response?.result;
   if (!resp) {
-    return { rows: [], columns: [] };
+    return { rows: [], columns: [], lastInsertRowid: undefined };
   }
 
   const columns: string[] = (resp.cols || []).map((c: any) => c.name);
@@ -70,7 +70,8 @@ async function tursoExecute(sql: string, args: any[] = []): Promise<{ rows: Turs
     return obj;
   });
 
-  return { rows, columns };
+  const lastInsertRowid = resp.last_insert_rowid?.toString() ?? undefined;
+  return { rows, columns, lastInsertRowid };
 }
 
 // Execute multiple SQL statements (for schema init)
@@ -113,7 +114,7 @@ let isInitialized = false;
 
 // The db object that mimics the old @libsql/client interface
 const db = {
-  async execute(input: string | { sql: string; args: any[] }): Promise<{ rows: TursoRow[] }> {
+  async execute(input: string | { sql: string; args: any[] }): Promise<{ rows: TursoRow[]; lastInsertRowid?: string }> {
     if (typeof input === 'string') {
       return tursoExecute(input);
     }
