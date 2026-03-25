@@ -65,7 +65,14 @@ async function tursoExecute(sql: string, args: any[] = []): Promise<{ rows: Turs
   const rows: TursoRow[] = (resp.rows || []).map((row: any[]) => {
     const obj: TursoRow = {};
     columns.forEach((col, i) => {
-      obj[col] = row[i]?.value ?? null;
+      const cell = row[i];
+      if (!cell || cell.type === 'null') {
+        obj[col] = null;
+      } else if (cell.type === 'integer' || cell.type === 'float') {
+        obj[col] = Number(cell.value);
+      } else {
+        obj[col] = cell.value;
+      }
     });
     return obj;
   });

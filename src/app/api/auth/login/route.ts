@@ -1,3 +1,6 @@
+if (typeof globalThis !== 'undefined' && !(globalThis as any).XMLHttpRequest) {
+    (globalThis as any).XMLHttpRequest = class XMLHttpRequest { open(){} send(){} };
+}
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
