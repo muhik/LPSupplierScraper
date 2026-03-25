@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Download, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { formatNumber, parseRupiah } from '@/lib/format';
 
 declare global {
     interface Window {
@@ -12,18 +13,25 @@ declare global {
 
 export default function CheckoutForm() {
     const router = useRouter();
-    const [amount, setAmount] = useState('89000');
+    const [rawAmount, setRawAmount] = useState<number>(10000000);
+    const [displayAmount, setDisplayAmount] = useState<string>('');
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [loading, setLoading] = useState(false);
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    // Update display amount when raw amount changes
+    useEffect(() => {
+        setDisplayAmount(formatNumber(rawAmount));
+    }, [rawAmount]);
 
     const handleSubmit = async (e?: React.FormEvent, isBypass = false) => {
         if (e) e.preventDefault();
         setLoading(true);
 
         const payload = new FormData();
-        payload.append('amount', amount);
+        payload.append('amount', rawAmount.toString());
         payload.append('name', name);
         payload.append('email', email);
         payload.append('phone', phone);
@@ -33,7 +41,7 @@ export default function CheckoutForm() {
             if (typeof window !== 'undefined' && window.fbq) {
                 window.fbq('track', 'InitiateCheckout', {
                     currency: 'IDR',
-                    value: Number(amount)
+                    value: Number(rawAmount)
                 });
             }
 
@@ -77,7 +85,7 @@ export default function CheckoutForm() {
                 <p className="flex items-start gap-2">
                     <span className="text-xl">💡</span>
                     <span>
-                        <strong>Keputusan Tepat!</strong> Hanya dengan investasi <strong>Rp89.000</strong>, Anda sudah mendapatkan akses <strong>Template CuanPro HPP Calculator & Business Analytics</strong> untuk mengelola keuangan bisnis secara lebih profesional.
+                        <strong>Keputusan Tepat!</strong> Investasi <strong>{formatNumber(10000000)}</strong> untuk <strong>Template Scraper Tokopedia & Shopee</strong> + <strong>WEB Dashboard Lokal</strong> + <strong>Training 1 Hari</strong> eksklusif. Mulai ekstrak data supplier secara otomatis dan tingkatkan margin profit bisnis Anda!
                     </span>
                 </p>
             </div>
@@ -87,15 +95,28 @@ export default function CheckoutForm() {
                 <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 font-medium text-neutral-500">Rp</span>
                     <input
-                        type="number"
+                        type="text"
                         name="amount"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
+                        ref={inputRef}
+                        value={displayAmount}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            const parsed = parseRupiah(value);
+                            if (parsed >= 10000000 || parsed === 0) {
+                                setRawAmount(parsed);
+                            }
+                        }}
+                        onBlur={() => {
+                            if (rawAmount < 10000000) {
+                                setRawAmount(10000000);
+                            }
+                        }}
                         className="w-full pl-12 pr-4 py-3 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-premium-500 focus:border-premium-500 text-lg outline-none transition-shadow font-normal text-neutral-700"
                         required
-                        min="89000"
+                        placeholder="Rp 10.000.000"
                     />
                 </div>
+                <p className="text-xs text-neutral-500 mt-2">Minimal Rp 10.000.000</p>
             </div>
 
             {/* Buyer Info */}
@@ -152,7 +173,7 @@ export default function CheckoutForm() {
 
             <div className="flex items-center justify-center gap-2 text-sm text-neutral-500 mt-4">
                 <ShieldCheck className="w-4 h-4 text-premium-600" />
-                <span>Pembayaran Aman &amp; Terverifikasi</span>
+                <span>Pembayaran Aman & Terverifikasi</span>
             </div>
         </form>
     );

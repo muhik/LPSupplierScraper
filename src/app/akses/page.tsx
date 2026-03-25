@@ -60,7 +60,7 @@ export default function AksesPage() {
                     </div>
                     <h1 className="text-3xl font-bold text-neutral-900 mb-2 tracking-tight">Cari Akses Saya</h1>
                     <p className="text-neutral-500">
-                        Kehilangan link Terabox CuanPro Anda?
+                        Kehilangan link SupplierScraper Pro Anda?
                         <br />Masukkan email yang digunakan saat pembelian.
                     </p>
                 </div>
@@ -108,7 +108,7 @@ export default function AksesPage() {
                                 </>
                             ) : (
                                 <>
-                                    <span>Buka Brankas Mode Aman</span>
+                                    <span>Buka SupplierScraper Pro</span>
                                     <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                                 </>
                             )}

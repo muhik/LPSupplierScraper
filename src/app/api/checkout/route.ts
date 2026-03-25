@@ -1,6 +1,6 @@
-export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
+import { sendAdminNotification } from '@/lib/email';
 
 export async function POST(request: Request) {
     try {
@@ -11,17 +11,17 @@ export async function POST(request: Request) {
         const amount = formData.get('amount') as string;
         const parsedAmount = parseInt(amount, 10);
 
-        if (isNaN(parsedAmount) || parsedAmount < 89000) {
-            return NextResponse.json({ error: 'Minimum pembayaran adalah Rp 89.000' }, { status: 400 });
+        if (isNaN(parsedAmount) || parsedAmount < 10000000) {
+            return NextResponse.json({ error: 'Minimum pembayaran adalah Rp 10.000.000' }, { status: 400 });
         }
 
         const db = await getDb();
 
-        // Store the order in our local SQLite database
+        // Store the order in our local SQLite database with PENDING status
         const info = await db.execute({
             sql: `
-            INSERT INTO transactions (name, email, phone, amount)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO transactions (name, email, phone, amount, status)
+            VALUES (?, ?, ?, ?, 'PENDING')
           `,
             args: [name, email, phone, parsedAmount]
         });
@@ -30,67 +30,27 @@ export async function POST(request: Request) {
 
         console.log('Transaction recorded:', { name, email, phone, amount, id: newId });
 
-        // Generate Mayar Payment Link
-        const mayarApiKey = process.env.MAYAR_API_KEY;
-        if (!mayarApiKey) {
-            console.warn('MAYAR_API_KEY is not set. Falling back to simulator.');
-            return NextResponse.json({ url: `/simulator/mayar?id=${newId}` });
+        // Send email notification to admin
+        try {
+            await sendAdminNotification({
+                id: newId || 'unknown',
+                name,
+                email,
+                phone,
+                amount: parsedAmount
+            });
+        } catch (emailError) {
+            console.error('Failed to send email notification:', emailError);
+            // Continue even if email fails - don't block the transaction
         }
 
-        // Domain to redirect back to (Use localhost for dev, garasiduaroda/soonislam for prod)
-        // Since we are running in Cloudflare, we use the incoming request URL
+        // Return redirect URL to waiting page
         const requestUrl = new URL(request.url);
         const baseUrl = `${requestUrl.protocol}//${requestUrl.host}`;
 
-        const mayarResponse = await fetch('https://api.mayar.id/hl/v1/invoice/create', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${mayarApiKey}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                name: name,
-                email: email,
-                amount: parsedAmount,
-                mobile: phone,
-                redirectUrl: `${baseUrl}/success?id=${newId}&email=${encodeURIComponent(email)}`,
-                description: `Akses Template CuanPro HPP & Analytics`,
-                items: [
-                    {
-                        name: "Template CuanPro",
-                        description: "Pembelian Template Excel",
-                        quantity: 1,
-                        price: parsedAmount,
-                        rate: parsedAmount
-                    }
-                ]
-            })
+        return NextResponse.json({
+            url: `${baseUrl}/waiting?id=${newId}&email=${encodeURIComponent(email)}`
         });
-
-        if (!mayarResponse.ok) {
-            const errText = await mayarResponse.text();
-            console.error('Failed to create Mayar link:', errText);
-            return NextResponse.json({ error: `Mayar Error: ${errText}` }, { status: mayarResponse.status });
-        }
-
-        const mayarData = await mayarResponse.json();
-
-        if (mayarData?.statusCode !== 200 || !mayarData?.data?.link) {
-            console.error('Invalid response from Mayar:', mayarData);
-            return NextResponse.json({ error: `Mayar Invalid Structure: ${JSON.stringify(mayarData)}` }, { status: 500 });
-        }
-
-        // Store Mayar Invoice ID for cron-polling
-        const invoiceId = mayarData.data.id;
-        if (invoiceId) {
-            await db.execute({
-                sql: `UPDATE transactions SET mayar_id = ? WHERE id = ?`,
-                args: [invoiceId, newId]
-            });
-        }
-
-        // Return the Mayar URL to the client
-        return NextResponse.json({ url: mayarData.data.link });
 
     } catch (error: any) {
         console.error('Checkout error:', error);
