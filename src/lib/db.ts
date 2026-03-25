@@ -1,43 +1,132 @@
-// Polyfill for Cloudflare Pages Edge Runtime
-// Must run BEFORE @libsql/client is loaded, so we use dynamic import
-if (typeof globalThis !== 'undefined' && !(globalThis as any).XMLHttpRequest) {
-  (globalThis as any).XMLHttpRequest = class XMLHttpRequest {
-    open() {}
-    send() {}
-    setRequestHeader() {}
-    addEventListener() {}
-    removeEventListener() {}
-  };
-}
+// ============================================================
+// Turso HTTP API client — 100% Edge/Cloudflare compatible
+// Uses only fetch(), zero external dependencies
+// ============================================================
 
-// Use dynamic import to ensure polyfill runs first
-let _clientModule: typeof import('@libsql/client/web') | null = null;
+const TURSO_URL = () => process.env.TURSO_DATABASE_URL || '';
+const TURSO_TOKEN = () => process.env.TURSO_AUTH_TOKEN || '';
 
-async function getClientModule() {
-  if (!_clientModule) {
-    _clientModule = await import('@libsql/client/web');
+function getHttpUrl(): string {
+  let url = TURSO_URL();
+  // Convert libsql:// to https://
+  if (url.startsWith('libsql://')) {
+    url = url.replace('libsql://', 'https://');
   }
-  return _clientModule;
+  return url;
 }
 
-type Client = Awaited<ReturnType<typeof getClientModule>> extends { Client: infer C } ? C : any;
+interface TursoResult {
+  columns: string[];
+  rows: any[];
+}
 
-let db: any = null;
+interface TursoRow {
+  [key: string]: any;
+}
+
+// Execute a single SQL statement via Turso HTTP API
+async function tursoExecute(sql: string, args: any[] = []): Promise<{ rows: TursoRow[]; columns: string[] }> {
+  const url = getHttpUrl();
+  const token = TURSO_TOKEN();
+
+  const response = await fetch(`${url}/v2/pipeline`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      requests: [
+        { type: 'execute', stmt: { sql, args: args.map(a => ({ type: inferType(a), value: String(a) })) } },
+        { type: 'close' }
+      ]
+    }),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Turso HTTP error ${response.status}: ${text}`);
+  }
+
+  const data = await response.json();
+
+  // Extract results from pipeline response
+  const result = data?.results?.[0];
+  if (result?.type === 'error') {
+    throw new Error(`Turso SQL error: ${result.error?.message || JSON.stringify(result.error)}`);
+  }
+
+  const resp = result?.response?.result;
+  if (!resp) {
+    return { rows: [], columns: [] };
+  }
+
+  const columns: string[] = (resp.cols || []).map((c: any) => c.name);
+  const rows: TursoRow[] = (resp.rows || []).map((row: any[]) => {
+    const obj: TursoRow = {};
+    columns.forEach((col, i) => {
+      obj[col] = row[i]?.value ?? null;
+    });
+    return obj;
+  });
+
+  return { rows, columns };
+}
+
+// Execute multiple SQL statements (for schema init)
+async function tursoExecuteMultiple(statements: string[]): Promise<void> {
+  const url = getHttpUrl();
+  const token = TURSO_TOKEN();
+
+  const requests = statements
+    .filter(s => s.trim().length > 0)
+    .map(sql => ({ type: 'execute' as const, stmt: { sql } }));
+  requests.push({ type: 'close' as any, stmt: undefined as any });
+
+  const response = await fetch(`${url}/v2/pipeline`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ requests }),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Turso HTTP error ${response.status}: ${text}`);
+  }
+}
+
+function inferType(value: any): string {
+  if (value === null || value === undefined) return 'null';
+  if (typeof value === 'integer' || (typeof value === 'number' && Number.isInteger(value))) return 'integer';
+  if (typeof value === 'number') return 'float';
+  return 'text';
+}
+
+// ============================================================
+// Database wrapper (same interface as before)
+// ============================================================
+
 let isInitialized = false;
 
-export async function getDb() {
-  if (!db) {
-    const { createClient } = await getClientModule();
+// The db object that mimics the old @libsql/client interface
+const db = {
+  async execute(input: string | { sql: string; args: any[] }): Promise<{ rows: TursoRow[] }> {
+    if (typeof input === 'string') {
+      return tursoExecute(input);
+    }
+    return tursoExecute(input.sql, input.args);
+  },
 
-    const url = process.env.TURSO_DATABASE_URL || 'file:data.db';
-    const authToken = process.env.TURSO_AUTH_TOKEN;
-
-    db = createClient({
-      url,
-      authToken,
-    });
+  async executeMultiple(sql: string): Promise<void> {
+    const statements = sql.split(';').map(s => s.trim()).filter(s => s.length > 0);
+    return tursoExecuteMultiple(statements);
   }
+};
 
+export async function getDb() {
   // Initialize schema
   if (!isInitialized) {
     try {
@@ -55,12 +144,12 @@ export async function getDb() {
           amount INTEGER NOT NULL,
           status TEXT DEFAULT 'PENDING',
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        );
+        )
       `);
 
       // Add status column if it doesn't exist (Migration)
       try {
-        await db.execute("ALTER TABLE transactions ADD COLUMN status TEXT DEFAULT 'PAID';");
+        await db.execute("ALTER TABLE transactions ADD COLUMN status TEXT DEFAULT 'PAID'");
       } catch {
         // Column already exists
       }
