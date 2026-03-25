@@ -101,7 +101,7 @@ async function tursoExecuteMultiple(statements: string[]): Promise<void> {
 
 function inferType(value: any): string {
   if (value === null || value === undefined) return 'null';
-  if (typeof value === 'integer' || (typeof value === 'number' && Number.isInteger(value))) return 'integer';
+  if (typeof value === 'number' && Number.isInteger(value)) return 'integer';
   if (typeof value === 'number') return 'float';
   return 'text';
 }
